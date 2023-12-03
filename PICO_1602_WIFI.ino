@@ -1,27 +1,25 @@
 #include <WiFi.h>
+//以下是引脚定义
 #define LCD_RS 2
 #define LCD_E 3 
-#define LCD_D0 15
-#define LCD_D1 14
-#define LCD_D2 13
-#define LCD_D3 12
 #define LCD_D4 11
 #define LCD_D5 10
 #define LCD_D6 9
 #define LCD_D7 8
 #define BOTTEN1 16
+//以下是命令定义
 #define CMD 0
 #define CHR 1
 #define char_per_line 16
 #define LCD_line1 0x80
 #define LCD_line2 0xc0
-//const char* ssid = "2.4G_open";
-const char* ssid = "iPhone 14p";
-const char* password = "123456778";
-String header;
+
+const char* ssid = "YOUR_SSID";             //此处填入你的WiFi SSID
+const char* password = "YOUR_PASSWORD";     //此处填入你的WiFi密码
 unsigned long currentTime = millis();
 unsigned long previousTime = 0;
 const long timeoutTime = 2000;
+String header;
 String input = "";
 String co="123456789ABCDEF1";
 String co2="123456789ABCDEF1";
@@ -29,8 +27,8 @@ String IP1="IP:";
 char temp[35];
 int tail = 0;
 int counter=0;
-using namespace std;
 WiFiServer server(80);
+using namespace std;
 
 void init(){
     pinMode(2,GPIO_OUT);
@@ -41,10 +39,6 @@ void init(){
     pinMode(9,GPIO_OUT);
     pinMode(10,GPIO_OUT);
     pinMode(11,GPIO_OUT);
-    pinMode(12,GPIO_OUT);
-    pinMode(13,GPIO_OUT);
-    pinMode(14,GPIO_OUT);
-    pinMode(15,GPIO_OUT);
 }
 
 void triggle_E(){
@@ -67,6 +61,7 @@ void gpio_write(int data,int mode){
     digitalWrite(LCD_D5,LOW);
     digitalWrite(LCD_D4,LOW);
 
+    //前四位
     if((data &0x80) == 0x80){
         digitalWrite(LCD_D7,HIGH);
     }
@@ -80,6 +75,7 @@ void gpio_write(int data,int mode){
         digitalWrite(LCD_D4,HIGH);
     }
 
+    //后四位
     triggle_E();
     digitalWrite(LCD_D7,LOW);
     digitalWrite(LCD_D6,LOW);
@@ -209,7 +205,6 @@ void loop(){
             currentTime = millis();
             if (client.available()){
                 char c = client.read();
-                //Serial.print(c);
                 
                 header += c;
                 if (c == '\n'){          
@@ -224,7 +219,7 @@ void loop(){
                         client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
                         client.println("<link rel=\"icon\" href=\"data:,\">");
             
-                        // CSS to style the on/off buttons
+                        // CSS style
                         client.println("<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}");
                         client.println(".button { background-color: #4CAF50; border: none; color: white; padding: 16px 40px;");
                         client.println("text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
@@ -292,6 +287,6 @@ void loop(){
             lcd_text(co2,LCD_line2);
        }
        delay(100);
-       digitalWrite(6, LOW  );
+       digitalWrite(6, LOW);
     }
 }
