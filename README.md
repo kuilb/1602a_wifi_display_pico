@@ -5,6 +5,8 @@
 使用arduino IDE编写
 
 使用前请自定义WiFi ssid和密码，只支持2.4GWiFi
+(const char* ssid = "YOUR_SSID";
+const char* password = "YOUR_PASSWORD";)
 
 请在代码头的define处修改GPIO序号
 
