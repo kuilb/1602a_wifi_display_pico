@@ -20,5 +20,5 @@ https://github.com/earlephilhower/arduino-pico/releases/download/global/package_
 编译烧录
 
 ### 使用方法
-接入pico同一WiFi,打开pico上显示的ip即可
+接入pico同一WiFi,打开pico上显示的ip即可  
 按键功能：短按显示ip，长按清屏
