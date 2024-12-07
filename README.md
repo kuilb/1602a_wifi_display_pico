@@ -13,12 +13,14 @@ const char* password = "YOUR_PASSWORD";)
 1602a的V0和RW接地
 
 ### 配置方法
-arduino-首选项-附加开发板管理器网址填入  
+1.使用最新版arduino的内置下载器选择raspberry PI pico WH下载sdk编译  
+
+2.arduino-首选项-附加开发板管理器网址填入  
 https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
 
 前往开发板管理器下载pico_sdk  
 编译烧录
 
 ### 使用方法
-接入pico同一WiFi,打开pico上显示的ip即可  
-按键功能：短按显示ip，长按清屏
+接入pico同一WiFi,使用浏览器打开pico上显示的ip即可  
+按键功能：短按显示ip，长按清屏，继续按修改亮度
