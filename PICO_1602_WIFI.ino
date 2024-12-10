@@ -1,25 +1,28 @@
 #include <WiFi.h>
 //以下是引脚定义
-#define LCD_RS 2
-#define LCD_E 3 
-#define LCD_D4 11
+#define LCD_RS 2                    //数据/指令切换引脚
+#define LCD_E 3                     //触发引脚
+#define LCD_D4 11                   //四位数据引脚
 #define LCD_D5 10
 #define LCD_D6 9
 #define LCD_D7 8
-#define BOTTEN1 16
-#define BLA 4
+#define LED_LIGHT 6                 //外接LED提示灯
+#define BLA 4                       //背光PWM控制
+
+#define BOTTEN 16                   //按钮引脚
+
 //以下是命令定义
-#define CMD 0
-#define CHR 1
-#define char_per_line 16
-#define LCD_line1 0x80
-#define LCD_line2 0xc0
+#define CMD 0                       //命令为0
+#define CHR 1                       //数据为1
+#define char_per_line 16            //每行16个字符
+#define LCD_line1 0x80              //第一行地址
+#define LCD_line2 0xc0              //第二行地址
 
 const char* ssid = "";              //此处填入你的WiFi SSID
 const char* password = "";          //此处填入你的WiFi密码
 unsigned long currentTime = millis();
 unsigned long previousTime = 0;
-const long timeoutTime = 2000;
+const long timeoutTime = 2000;      //连接超时时间2S
 String header;
 String input = "";
 String co="123456789ABCDEF1";
@@ -28,24 +31,23 @@ String IP1="IP:";
 char temp[35];
 int tail = 0;
 int counter=0;
-WiFiServer server(80);
+WiFiServer server(80);              //80端口设置服务器
 using namespace std;
 
-void init(){              //初始化引脚
-    pinMode(2,GPIO_OUT);
-    pinMode(3,GPIO_OUT);
-    pinMode(4,OUTPUT);
-    pinMode(5,INPUT);
-    pinMode(6,GPIO_OUT);
-    pinMode(8,GPIO_OUT);
-    pinMode(9,GPIO_OUT);
-    pinMode(10,GPIO_OUT);
-    pinMode(11,GPIO_OUT);
+void init(){                        //初始化引脚
+    pinMode(LCD_RS,GPIO_OUT);
+    pinMode(LCD_E,GPIO_OUT);
+    pinMode(LCD_D4,OUTPUT);
+    pinMode(LCD_D5,GPIO_OUT);
+    pinMode(LCD_D6,GPIO_OUT);
+    pinMode(LCD_D7,GPIO_OUT);
+    pinMode(LED_LIGHT,GPIO_OUT);
+    pinMode(BOTTEN,INPUT);
 
     analogWrite(BLA, 255);
 }
 
-void triggle_E(){       //触发E引脚
+void triggle_E(){                     //触发E引脚
     delay(1);
     digitalWrite(LCD_E,HIGH);
     delay(1);
@@ -53,19 +55,22 @@ void triggle_E(){       //触发E引脚
     delay(1);
 }
 
-void gpio_write(int data,int mode){   //写入一个数据或命令
+void gpio_write(int data,int mode){   //写入一个数据或指令
+
+    //设定模式(指令/字符)
     if(mode==0){
         digitalWrite(LCD_RS,LOW);
     }
     else if(mode==1){
         digitalWrite(LCD_RS,HIGH);
     }
+
+    //前四位
     digitalWrite(LCD_D7,LOW);
     digitalWrite(LCD_D6,LOW);
     digitalWrite(LCD_D5,LOW);
     digitalWrite(LCD_D4,LOW);
 
-    //前四位
     if((data &0x80) == 0x80){
         digitalWrite(LCD_D7,HIGH);
     }
@@ -78,9 +83,9 @@ void gpio_write(int data,int mode){   //写入一个数据或命令
     if((data & 0x10) == 0x10){
         digitalWrite(LCD_D4,HIGH);
     }
+    triggle_E();
 
     //后四位
-    triggle_E();
     digitalWrite(LCD_D7,LOW);
     digitalWrite(LCD_D6,LOW);
     digitalWrite(LCD_D5,LOW);
@@ -101,18 +106,18 @@ void gpio_write(int data,int mode){   //写入一个数据或命令
     triggle_E();
 }
 
-void lcd_init(){            //初始化1602函数
-    gpio_write(0x33,CMD); 
+void lcd_init(){                        //初始化1602函数
+    gpio_write(0x33,CMD);               //
     delay(50);
-    gpio_write(0x32,CMD);
+    gpio_write(0x32,CMD);               //
     delay(50);
-    gpio_write(0x06,CMD);
+    gpio_write(0x06,CMD);               //设置向右写入字符，设置屏幕内容不滚动
     delay(50);
-    gpio_write(0x0C,CMD);
+    gpio_write(0x0C,CMD);               //开启屏幕显示，关闭光标显示，关闭光标闪烁
     delay(50);
-    gpio_write(0x28,CMD);
+    gpio_write(0x28,CMD);               //设定数据总线为四位，显示2行字符，使用5*8字符点阵
     delay(50);
-    gpio_write(0x01,CMD);
+    gpio_write(0x01,CMD);               //清屏
     delay(50);
 }
 
@@ -133,18 +138,20 @@ void setup() {
     Serial.begin(115200);
     init();
     lcd_init();
-    lcd_text("RaspberryPI PICO",LCD_line1);
+    lcd_text("RaspberryPI PICO",LCD_line1);     //欢迎消息
     lcd_text("1602a WIFI Test",LCD_line2);
+
     pinMode(LED_BUILTIN, OUTPUT);
-    digitalWrite(LED_BUILTIN, HIGH);
+    digitalWrite(LED_BUILTIN, HIGH);            //点灯
     delay(1000);
+    digitalWrite(LED_BUILTIN, LOW);
+
     lcd_text("WIFI connecting",LCD_line1);
     lcd_text(" ",LCD_line2);
     Serial.print("RaspberryPI pico WH");
-    digitalWrite(LED_BUILTIN, LOW);
-    WiFi.begin(ssid,password);                  //连接WiFi
+    WiFi.begin(ssid,password);                  //在屏幕上显示状态
   
-    while (WiFi.status() != WL_CONNECTED) {     //在屏幕上显示状态
+    while (WiFi.status() != WL_CONNECTED) {     //连接WiFi
         lcd_text("WIFI connecting",LCD_line1);
         lcd_text(" ",LCD_line2);
         WiFi.begin(ssid,password);
@@ -156,8 +163,8 @@ void setup() {
     Serial.println(currentTime);
     Serial.print("WiFi connected at IP Address ");
     Serial.println(WiFi.localIP());
+    
     String IP = WiFi.localIP().toString().c_str();
-
     lcd_text("WIFI connected",LCD_line1);
     IP1.concat(IP);
     lcd_text(IP1,LCD_line2);                    //在屏幕上显示ip
@@ -362,66 +369,68 @@ String get_kana_ascii(int utf8){      //假名utf转换成RAW字符函数,查表
 }
 
 void loop(){
-    WiFiClient client = server.accept(); 
+    WiFiClient client = server.accept();        //初始化客户端
     digitalWrite(LED_BUILTIN, LOW);
-    if(WiFi.status() != WL_CONNECTED) {
-        digitalWrite(6, HIGH);
+    if(WiFi.status() != WL_CONNECTED) {         //未连接WiFi则点灯
+        digitalWrite(LED_LIGHT, HIGH);
     }
     else{
-        digitalWrite(6, LOW);
+        digitalWrite(LED_LIGHT, LOW);
     }
     
-    if(digitalRead(BOTTEN1)==1 && counter==0){
-        digitalWrite(LED_BUILTIN, HIGH);
+    if(digitalRead(BOTTEN)==1 && counter==0){   //短按按钮显示IP
+        digitalWrite(LED_BUILTIN, HIGH);        //按住是点灯
         lcd_text(ssid,LCD_line1);
         lcd_text(IP1,LCD_line2);
         counter++;
     }
-    else if(digitalRead(BOTTEN1)==1){
+    else if(digitalRead(BOTTEN)==1){            //长按开始计时
         digitalWrite(LED_BUILTIN, HIGH);
         if(counter%50==0)
           Serial.println(counter);
 
         counter++;
     }
-    else if(digitalRead(BOTTEN1)==0){
+
+
+    else if(digitalRead(BOTTEN)==0){            //按键松开清零计时器
         digitalWrite(LED_BUILTIN, LOW);
         counter=0;
     }
     
-    if (counter==300){
+    if (counter==300){                           //300时刻清屏
         lcd_text(" ",LCD_line1);
         lcd_text(" ",LCD_line2);
     } 
-    if (counter==700){
-        lcd_text("Bright",LCD_line1);
+    if (counter==700){                           //调整背光亮度
+        lcd_text("Brightness",LCD_line1);
         lcd_text("0%",LCD_line2);
         analogWrite(BLA, 0);
     }
     if (counter==1000){
-        lcd_text("Bright",LCD_line1);
+        lcd_text("Brightness",LCD_line1);
         lcd_text("25%",LCD_line2);
         analogWrite(BLA, 64);
     }
     if (counter==1300){
-        lcd_text("Bright",LCD_line1);
+        lcd_text("Brightness",LCD_line1);
         lcd_text("50%",LCD_line2);
         analogWrite(BLA, 128);
     }
     if (counter==1600){
-        lcd_text("Bright",LCD_line1);
+        lcd_text("Brightness",LCD_line1);
         lcd_text("75%",LCD_line2);
         analogWrite(BLA, 191);
     }
     if (counter==1900){
-        lcd_text("Bright",LCD_line1);
+        lcd_text("Brightness",LCD_line1);
         lcd_text("100%",LCD_line2);
         analogWrite(BLA, 255);
     }
 
 
-    if (counter==4000){
-        lcd_text("by KULIB 24/12/4",LCD_line1);
+    if (counter==4000){                         //程序消息
+        lcd_text("by KULIB 24/12/10",LCD_line1);
         lcd_text("code in arduino",LCD_line2);
     }
 
@@ -471,7 +480,7 @@ void loop(){
                     else{
                         Serial.println(currentLine);
                         if(currentLine.indexOf("GET /?inputbox=") >= 0){    //获取输入
-                            digitalWrite(6, HIGH);
+                            digitalWrite(LED_LIGHT, HIGH);
                             Serial.println("FIND!");
                             tail = currentLine.indexOf(" HTTP/1.1");
                             input = currentLine.substring(15,tail);
@@ -579,6 +588,6 @@ void loop(){
             Serial.println(co2);
        }
        delay(100);
-       digitalWrite(6, LOW);
+       digitalWrite(LED_LIGHT, LOW);
     }
 }
