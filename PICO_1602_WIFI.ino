@@ -1,4 +1,5 @@
 #include <WiFi.h>
+#include <map>
 //以下是引脚定义
 #define LCD_RS 2                    //数据/指令切换引脚
 #define LCD_E 3                     //触发引脚
@@ -32,7 +33,120 @@ char temp[35];
 int tail = 0;
 int counter=0;
 WiFiServer server(80);              //80端口设置服务器
+std::map<int, String> kanaMap;      //假名映射表
 using namespace std;
+
+void initKanaMap() {
+  // あ行
+  kanaMap[354] = "\xb1"; kanaMap[450] = "\xb1";  // あ
+  kanaMap[356] = "\xb2"; kanaMap[452] = "\xb2";  // い
+  kanaMap[358] = "\xb3"; kanaMap[454] = "\xb3";  // う
+  kanaMap[360] = "\xb4"; kanaMap[456] = "\xb4";  // え
+  kanaMap[362] = "\xb5"; kanaMap[458] = "\xb5";  // お
+
+  // か行
+  kanaMap[363] = "\xb6"; kanaMap[459] = "\xb6";  // か
+  kanaMap[365] = "\xb7"; kanaMap[461] = "\xb7";  // き
+  kanaMap[367] = "\xb8"; kanaMap[463] = "\xb8";  // く
+  kanaMap[369] = "\xb9"; kanaMap[465] = "\xb9";  // け
+  kanaMap[371] = "\xba"; kanaMap[467] = "\xba";  // こ
+
+  // が行（浊音）
+  kanaMap[364] = "\xb6\xde"; kanaMap[460] = "\xb6\xde";  // が
+  kanaMap[366] = "\xb7\xde"; kanaMap[462] = "\xb7\xde";  // ぎ
+  kanaMap[368] = "\xb8\xde"; kanaMap[464] = "\xb8\xde";  // ぐ
+  kanaMap[370] = "\xb9\xde"; kanaMap[466] = "\xb9\xde";  // げ
+  kanaMap[372] = "\xba\xde"; kanaMap[468] = "\xba\xde";  // ご
+
+  // さ行
+  kanaMap[373] = "\xbb"; kanaMap[469] = "\xbb";  // さ
+  kanaMap[375] = "\xbc"; kanaMap[471] = "\xbc";  // し
+  kanaMap[377] = "\xbd"; kanaMap[473] = "\xbd";  // す
+  kanaMap[379] = "\xbe"; kanaMap[475] = "\xbe";  // せ
+  kanaMap[381] = "\xbf"; kanaMap[477] = "\xbf";  // そ
+
+  // ざ行（浊音）
+  kanaMap[374] = "\xbb\xde"; kanaMap[470] = "\xbb\xde";  // ざ
+  kanaMap[376] = "\xbc\xde"; kanaMap[472] = "\xbc\xde";  // じ
+  kanaMap[378] = "\xbd\xde"; kanaMap[474] = "\xbd\xde";  // ず
+  kanaMap[380] = "\xbe\xde"; kanaMap[476] = "\xbe\xde";  // ぜ
+  kanaMap[382] = "\xbf\xde"; kanaMap[478] = "\xbf\xde";  // ぞ
+
+  // た行
+  kanaMap[383] = "\xc0"; kanaMap[479] = "\xc0";  // た
+  kanaMap[385] = "\xc1"; kanaMap[481] = "\xc1";  // ち
+  kanaMap[387] = "\xaf"; kanaMap[483] = "\xaf";  // っ
+  kanaMap[388] = "\xc2"; kanaMap[484] = "\xc2";  // つ
+  kanaMap[390] = "\xc3"; kanaMap[486] = "\xc3";  // て
+  kanaMap[392] = "\xc4"; kanaMap[488] = "\xc4";  // と
+
+  // だ行（浊音）
+  kanaMap[384] = "\xc0\xde"; kanaMap[480] = "\xc0\xde";  // だ
+  kanaMap[386] = "\xc1\xde"; kanaMap[482] = "\xc1\xde";  // ぢ
+  kanaMap[388] = "\xc2\xde"; kanaMap[484] = "\xc2\xde";  // づ
+  kanaMap[390] = "\xc3\xde"; kanaMap[486] = "\xc3\xde";  // で
+  kanaMap[392] = "\xc4\xde"; kanaMap[488] = "\xc4\xde";  // ど
+
+  // な行
+  kanaMap[394] = "\xc5"; kanaMap[490] = "\xc5";  // な
+  kanaMap[395] = "\xc6"; kanaMap[491] = "\xc6";  // に
+  kanaMap[396] = "\xc7"; kanaMap[492] = "\xc7";  // ぬ
+  kanaMap[397] = "\xc8"; kanaMap[493] = "\xc8";  // ね
+  kanaMap[398] = "\xc9"; kanaMap[494] = "\xc9";  // の
+
+  // は行
+  kanaMap[399] = "\xca"; kanaMap[495] = "\xca";  // は
+  kanaMap[402] = "\xcb"; kanaMap[498] = "\xcb";  // ひ
+  kanaMap[405] = "\xcc"; kanaMap[501] = "\xcc";  // ふ
+  kanaMap[408] = "\xcd"; kanaMap[504] = "\xcd";  // へ
+  kanaMap[411] = "\xce"; kanaMap[507] = "\xce";  // ほ
+
+  // ば行（浊音）
+  kanaMap[400] = "\xca\xde"; kanaMap[496] = "\xca\xde";  // ば
+  kanaMap[403] = "\xcb\xde"; kanaMap[499] = "\xcb\xde";  // び
+  kanaMap[406] = "\xcd\xde"; kanaMap[502] = "\xcc\xde";  // ぶ
+  kanaMap[409] = "\xcd\xde"; kanaMap[505] = "\xcd\xde";  // べ
+  kanaMap[412] = "\xce\xde"; kanaMap[508] = "\xce\xde";  // ぼ
+
+  // ぱ行（半浊音）
+  kanaMap[401] = "\xca\xdf"; kanaMap[497] = "\xca\xdf";  // ぱ
+  kanaMap[404] = "\xcb\xdf"; kanaMap[500] = "\xcb\xdf";  // ぴ
+  kanaMap[407] = "\xcc\xdf"; kanaMap[503] = "\xcc\xdf";  // ぷ
+  kanaMap[410] = "\xcd\xdf"; kanaMap[506] = "\xcd\xdf";  // ぺ
+  kanaMap[413] = "\xce\xdf"; kanaMap[509] = "\xce\xdf";  // ぽ
+
+  // ま行
+  kanaMap[414] = "\xcf"; kanaMap[510] = "\xcf";  // ま
+  kanaMap[415] = "\xd0"; kanaMap[511] = "\xd0";  // み
+  kanaMap[416] = "\xd1"; kanaMap[512] = "\xd1";  // む
+  kanaMap[417] = "\xd2"; kanaMap[513] = "\xd2";  // め
+  kanaMap[418] = "\xd3"; kanaMap[514] = "\xd3";  // も
+
+  // や行
+  kanaMap[420] = "\xd4"; kanaMap[516] = "\xd4";  // や
+  kanaMap[422] = "\xd5"; kanaMap[518] = "\xd5";  // ゆ
+  kanaMap[424] = "\xd6"; kanaMap[520] = "\xd6";  // よ
+
+  // ら行
+  kanaMap[425] = "\xd7"; kanaMap[521] = "\xd7";  // ら
+  kanaMap[426] = "\xd8"; kanaMap[522] = "\xd8";  // り
+  kanaMap[427] = "\xd9"; kanaMap[523] = "\xd9";  // る
+  kanaMap[428] = "\xda"; kanaMap[524] = "\xda";  // れ
+  kanaMap[429] = "\xdb"; kanaMap[535] = "\xdb";  // ろ
+
+  // わ行・ん
+  kanaMap[431] = "\xdc"; kanaMap[527] = "\xdd";  // わ
+  kanaMap[434] = "\xa6"; kanaMap[530] = "\xde";  // を
+  kanaMap[435] = "\xdd"; kanaMap[531] = "\xdf";  // ん
+
+  // 标点
+  kanaMap[540] = "\xb0"; // ー
+  kanaMap[290] = "\xa1"; // 。
+  kanaMap[300] = "\xa2"; // 「
+  kanaMap[301] = "\xa3"; // 」
+  kanaMap[289] = "\xa4"; // 、
+  kanaMap[539] = "\xa5"; // ・
+}
 
 void init(){                        //初始化引脚
     pinMode(LCD_RS,GPIO_OUT);
@@ -137,6 +251,7 @@ void lcd_text(String ltext,int line){   //显示函数
 void setup() {
     Serial.begin(115200);
     init();
+    initKanaMap();                              //初始化假名表
     lcd_init();
     lcd_text("RaspberryPI PICO",LCD_line1);     //欢迎消息
     lcd_text("1602a WIFI Test",LCD_line2);
@@ -174,196 +289,7 @@ void setup() {
 
 String get_kana_ascii(int utf8){      //假名utf转换成RAW字符函数,查表
   String raw_kana="  ";               //返回用变量
-  if(utf8==354 || utf8==450)  //あ
-    raw_kana[0]=0Xb1;
-  if(utf8==356 || utf8==452)  //い
-    raw_kana[0]=0Xb2;
-  if(utf8==358 || utf8==454)  //う
-    raw_kana[0]=0Xb3;
-  if(utf8==360 || utf8==456)  //え
-    raw_kana[0]=0Xb4;
-  if(utf8==362 || utf8==458)  //お
-    raw_kana[0]=0Xb5;
-
-  if(utf8==353 || utf8==449)  //ぁ
-    raw_kana[0]=0Xa7;
-  if(utf8==355 || utf8==451)  //ぃ
-    raw_kana[0]=0Xa8;
-  if(utf8==357 || utf8==453)  //ぅ
-    raw_kana[0]=0Xa9;
-  if(utf8==359 || utf8==455)  //ぇ
-    raw_kana[0]=0Xaa;
-  if(utf8==361 || utf8==457)  //ぉ
-    raw_kana[0]=0Xab;
-
-  if(utf8==363 || utf8==459)  //か
-    raw_kana[0]=0Xb6;
-  if(utf8==365 || utf8==461)  //き
-    raw_kana[0]=0Xb7;
-  if(utf8==367 || utf8==463)  //く
-    raw_kana[0]=0Xb8;
-  if(utf8==369 || utf8==465)  //け
-    raw_kana[0]=0Xb9;
-  if(utf8==371 || utf8==467)  //こ
-    raw_kana[0]=0Xba;
-
-  if(utf8==364 || utf8==460)  //が
-    {raw_kana[0]=0Xb6;raw_kana[1]=0Xde;}
-  if(utf8==366 || utf8==462)  //ぎ
-    {raw_kana[0]=0Xb7;raw_kana[1]=0Xde;}
-  if(utf8==368 || utf8==464)  //ぐ
-    {raw_kana[0]=0Xb8;raw_kana[1]=0Xde;}
-  if(utf8==370 || utf8==466)  //げ
-    {raw_kana[0]=0Xb9;raw_kana[1]=0Xde;}
-  if(utf8==372 || utf8==468)  //ご
-    {raw_kana[0]=0Xba;raw_kana[1]=0Xde;}
-
-  if(utf8==373 || utf8==469)  //さ
-    raw_kana[0]=0Xbb;
-  if(utf8==375 || utf8==471)  //し
-    raw_kana[0]=0Xbc;
-  if(utf8==377 || utf8==473)  //す
-    raw_kana[0]=0Xbd;
-  if(utf8==379 || utf8==475)  //せ
-    raw_kana[0]=0Xbe;
-  if(utf8==381 || utf8==477)  //そ
-    raw_kana[0]=0Xbf;
-
-  if(utf8==374 || utf8==470)  //ざ
-    {raw_kana[0]=0Xbb;raw_kana[1]=0Xde;}
-  if(utf8==376 || utf8==472)  //じ
-    {raw_kana[0]=0Xbc;raw_kana[1]=0Xde;}
-  if(utf8==378 || utf8==474)  //ず
-    {raw_kana[0]=0Xbd;raw_kana[1]=0Xde;}
-  if(utf8==380 || utf8==476)  //ぜ
-    {raw_kana[0]=0Xbe;raw_kana[1]=0Xde;}
-  if(utf8==382 || utf8==478)  //ぞ
-    {raw_kana[0]=0Xbf;raw_kana[1]=0Xde;}
-
-  if(utf8==383 || utf8==479)  //た
-    raw_kana[0]=0Xc0;
-  if(utf8==385 || utf8==481)  //ち
-    raw_kana[0]=0Xc1;
-  if(utf8==388 || utf8==484)  //つ
-    raw_kana[0]=0Xc2;
-  if(utf8==390 || utf8==486)  //て
-    raw_kana[0]=0Xc3;
-  if(utf8==392 || utf8==488)  //と
-    raw_kana[0]=0Xc4;
-
-  if(utf8==384 || utf8==480)  //だ
-    {raw_kana[0]=0Xc0;raw_kana[1]=0Xde;}
-  if(utf8==386 || utf8==482)  //ぢ
-    {raw_kana[0]=0Xc1;raw_kana[1]=0Xde;}
-  if(utf8==389 || utf8==485)  //づ
-    {raw_kana[0]=0Xc2;raw_kana[1]=0Xde;}
-  if(utf8==391 || utf8==487)  //で
-    {raw_kana[0]=0Xc3;raw_kana[1]=0Xde;}
-  if(utf8==393 || utf8==489)  //ど
-    {raw_kana[0]=0Xc4;raw_kana[1]=0Xde;}
-
-  if(utf8==387 || utf8==483)  //っ
-    raw_kana[0]=0Xaf;
-
-  if(utf8==394 || utf8==490)  //な
-    raw_kana[0]=0Xc5;
-  if(utf8==395 || utf8==491)  //に
-    raw_kana[0]=0Xc6;
-  if(utf8==396 || utf8==492)  //ぬ
-    raw_kana[0]=0Xc7;
-  if(utf8==397 || utf8==493)  //ね
-    raw_kana[0]=0Xc8;
-  if(utf8==398 || utf8==494)  //の
-    raw_kana[0]=0Xc9;
-
-  if(utf8==399 || utf8==495)  //は
-    raw_kana[0]=0Xca;
-  if(utf8==402 || utf8==498)  //ひ
-    raw_kana[0]=0Xcb;
-  if(utf8==405 || utf8==501)  //ふ
-    raw_kana[0]=0Xcc;
-  if(utf8==408 || utf8==504)  //へ
-    raw_kana[0]=0Xcd;
-  if(utf8==411 || utf8==507)  //ほ
-    raw_kana[0]=0Xce;
-
-  if(utf8==400 || utf8==496)  //ば
-    {raw_kana[0]=0Xca;raw_kana[1]=0Xde;}
-  if(utf8==403 || utf8==499)  //び
-    {raw_kana[0]=0Xcb;raw_kana[1]=0Xde;}
-  if(utf8==406 || utf8==502)  //ぶ
-    {raw_kana[0]=0Xcc;raw_kana[1]=0Xde;}
-  if(utf8==409 || utf8==505)  //べ
-    {raw_kana[0]=0Xcd;raw_kana[1]=0Xde;}
-  if(utf8==412 || utf8==508)  //ぼ
-    {raw_kana[0]=0Xce;raw_kana[1]=0Xde;}
-
-  if(utf8==401 || utf8==497)  //ぱ
-    {raw_kana[0]=0Xca;raw_kana[1]=0Xdf;}
-  if(utf8==404 || utf8==500)  //ぴ
-    {raw_kana[0]=0Xcb;;raw_kana[1]=0Xdf;}
-  if(utf8==407 || utf8==503)  //ぷ
-    {raw_kana[0]=0Xcc;raw_kana[1]=0Xdf;}
-  if(utf8==410 || utf8==506)  //ぺ
-    {raw_kana[0]=0Xcd;raw_kana[1]=0Xdf;}
-  if(utf8==413 || utf8==509)  //ぽ
-    {raw_kana[0]=0Xce;raw_kana[1]=0Xdf;}
-
-  if(utf8==414 || utf8==510)  //ま
-    raw_kana[0]=0Xcf;
-  if(utf8==415 || utf8==511)  //み
-    raw_kana[0]=0Xd0;
-  if(utf8==416 || utf8==512)  //む
-    raw_kana[0]=0Xd1;
-  if(utf8==417 || utf8==513)  //め
-    raw_kana[0]=0Xd2;
-  if(utf8==418 || utf8==514)  //も
-    raw_kana[0]=0Xd3;
-
-  if(utf8==420 || utf8==516)  //や
-    raw_kana[0]=0Xd4;
-  if(utf8==422 || utf8==518)  //ゆ
-    raw_kana[0]=0Xd5;
-  if(utf8==424 || utf8==520)  //よ
-    raw_kana[0]=0Xd6;
-
-  if(utf8==419 || utf8==515)  //ゃ
-    raw_kana[0]=0Xac;
-  if(utf8==421 || utf8==517)  //ゅ
-    raw_kana[0]=0Xad;
-  if(utf8==423 || utf8==519)  //ょ
-    raw_kana[0]=0Xae;
-
-  if(utf8==425 || utf8==521)  //ら
-    raw_kana[0]=0Xd7;
-  if(utf8==426 || utf8==522)  //り
-    raw_kana[0]=0Xd8;
-  if(utf8==427 || utf8==523)  //る
-    raw_kana[0]=0Xd9;
-  if(utf8==428 || utf8==524)  //れ
-    raw_kana[0]=0Xda;
-  if(utf8==429 || utf8==525)  //ろ
-    raw_kana[0]=0Xdb;
-
-  if(utf8==431 || utf8==527)  //わ
-    raw_kana[0]=0Xdc;
-  if(utf8==434 || utf8==530)  //を
-    raw_kana[0]=0Xa6;
-  if(utf8==435 || utf8==531)  //ん
-    raw_kana[0]=0Xdd;
-
-  if(utf8==540)
-    raw_kana[0]=0Xb0;   //ー
-  if(utf8==290)
-    raw_kana[0]=0Xa1    //。
-  if(utf8==300)
-    raw_kana[0]=0Xa2;   //「
-  if(utf8==301)
-    raw_kana[0]=0Xa3;   //」
-  if(utf8==289)
-    raw_kana[0]=0Xa4;   //、
-  if(utf8==539)
-    raw_kana[0]=0Xa5;   //・
+  if (kanaMap.count(utf8)) return kanaMap[utf8];
 
   return raw_kana;
 }
