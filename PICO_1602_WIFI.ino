@@ -44,6 +44,13 @@ void initKanaMap() {
   kanaMap[360] = "\xb4"; kanaMap[456] = "\xb4";  // え
   kanaMap[362] = "\xb5"; kanaMap[458] = "\xb5";  // お
 
+  // 小あ行
+  kanaMap[353] = "\x7a"; kanaMap[449] = "\x7a";  // ぁ
+  kanaMap[355] = "\x7b"; kanaMap[451] = "\x7b";  // ぃ
+  kanaMap[357] = "\x7c"; kanaMap[453] = "\x7c";  // ぅ
+  kanaMap[359] = "\x7d"; kanaMap[455] = "\x7d";  // ぇ
+  kanaMap[361] = "\x7e"; kanaMap[457] = "\x7e";  // ぉ
+
   // か行
   kanaMap[363] = "\xb6"; kanaMap[459] = "\xb6";  // か
   kanaMap[365] = "\xb7"; kanaMap[461] = "\xb7";  // き
@@ -83,9 +90,9 @@ void initKanaMap() {
   // だ行（浊音）
   kanaMap[384] = "\xc0\xde"; kanaMap[480] = "\xc0\xde";  // だ
   kanaMap[386] = "\xc1\xde"; kanaMap[482] = "\xc1\xde";  // ぢ
-  kanaMap[388] = "\xc2\xde"; kanaMap[484] = "\xc2\xde";  // づ
-  kanaMap[390] = "\xc3\xde"; kanaMap[486] = "\xc3\xde";  // で
-  kanaMap[392] = "\xc4\xde"; kanaMap[488] = "\xc4\xde";  // ど
+  kanaMap[389] = "\xc2\xde"; kanaMap[485] = "\xc2\xde";  // づ
+  kanaMap[391] = "\xc3\xde"; kanaMap[487] = "\xc3\xde";  // で
+  kanaMap[393] = "\xc4\xde"; kanaMap[489] = "\xc4\xde";  // ど
 
   // な行
   kanaMap[394] = "\xc5"; kanaMap[490] = "\xc5";  // な
@@ -126,6 +133,11 @@ void initKanaMap() {
   kanaMap[420] = "\xd4"; kanaMap[516] = "\xd4";  // や
   kanaMap[422] = "\xd5"; kanaMap[518] = "\xd5";  // ゆ
   kanaMap[424] = "\xd6"; kanaMap[520] = "\xd6";  // よ
+
+  // 小や行
+  kanaMap[419] = "\xac"; kanaMap[515] = "\xac";  // ゃ
+  kanaMap[421] = "\xad"; kanaMap[517] = "\xad";  // ゅ
+  kanaMap[423] = "\xae"; kanaMap[519] = "\xae";  // ょ
 
   // ら行
   kanaMap[425] = "\xd7"; kanaMap[521] = "\xd7";  // ら
